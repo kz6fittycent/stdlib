@@ -17,7 +17,7 @@ Loads a rank-2 `array` from a text file.
 
 ### Syntax
 
-`call [[stdlib_io(module):loadtxt(interface)]](filename, array [, skiprows] [, max_rows])`
+`call ` [[stdlib_io(module):loadtxt(interface)]] `(filename, array [, skiprows] [, max_rows] [, fmt])`
 
 ### Arguments
 
@@ -28,6 +28,10 @@ Loads a rank-2 `array` from a text file.
 `skiprows` (optional): Skip the first `skiprows` lines. If skipping more rows than present, a 0-sized array will be returned. The default is 0.
 
 `max_rows` (optional): Read `max_rows` lines of content after `skiprows` lines. A negative value results in reading all lines. A value of zero results in no lines to be read. The default value is -1.
+
+`fmt` (optional): Fortran format specifier for the text read.  Defaults to the write format for the data type.  Setting fmt='*' will specify list directed read.   
+
+
 
 ### Return value
 
@@ -52,7 +56,7 @@ Returns the unit number of a file opened to read, to write, or to read and write
 
 ### Syntax
 
-`u = [[stdlib_io(module):open(function)]](filename [, mode] [, iostat])`
+`u = ` [[stdlib_io(module):open(function)]] `(filename [, mode] [, iostat])`
 
 ### Arguments
 
@@ -101,7 +105,7 @@ Saves a rank-2 `array` into a text file.
 
 ### Syntax
 
-`call [[stdlib_io(module):savetxt(interface)]](filename, array)`
+`call ` [[stdlib_io(module):savetxt(interface)]] `(filename, array)`
 
 ### Arguments
 
@@ -132,7 +136,7 @@ Loads an `array` from a npy formatted binary file.
 
 ### Syntax
 
-`call [[stdlib_io_npy(module):load_npy(interface)]](filename, array[, iostat][, iomsg])`
+`call ` [[stdlib_io_npy(module):load_npy(interface)]] `(filename, array[, iostat][, iomsg])`
 
 ### Arguments
 
@@ -173,7 +177,7 @@ Saves an `array` into a npy formatted binary file.
 
 ### Syntax
 
-`call [[stdlib_io_npy(module):save_npy(interface)]](filename, array[, iostat][, iomsg])`
+`call ` [[stdlib_io_npy(module):save_npy(interface)]] `(filename, array[, iostat][, iomsg])`
 
 ### Arguments
 
@@ -213,8 +217,9 @@ Read a whole line from a formatted unit into a string variable
 
 ### Syntax
 
-`call [[stdlib_io(module):getline(interface)]] (unit, line[, iostat][, iomsg])`
-`call [[stdlib_io(module):getline(interface)]] (line[, iostat][, iomsg])`
+`call ` [[stdlib_io(module):getline(interface)]] ` (unit, line[, iostat][, iomsg])`
+
+`call ` [[stdlib_io(module):getline(interface)]] ` (line[, iostat][, iomsg])`
 
 ### Arguments
 

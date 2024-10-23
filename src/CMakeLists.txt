@@ -6,14 +6,16 @@ set(fppFiles
     stdlib_bitsets.fypp
     stdlib_bitsets_64.fypp
     stdlib_bitsets_large.fypp
-    stdlib_hash_32bit.fypp 
+    stdlib_codata_type.fypp
+    stdlib_constants.fypp
+    stdlib_hash_32bit.fypp
     stdlib_hash_32bit_fnv.fypp
-    stdlib_hash_32bit_nm.fypp 
-    stdlib_hash_32bit_water.fypp 
-    stdlib_hash_64bit.fypp 
-    stdlib_hash_64bit_fnv.fypp 
-    stdlib_hash_64bit_pengy.fypp 
-    stdlib_hash_64bit_spookyv2.fypp 
+    stdlib_hash_32bit_nm.fypp
+    stdlib_hash_32bit_water.fypp
+    stdlib_hash_64bit.fypp
+    stdlib_hash_64bit_fnv.fypp
+    stdlib_hash_64bit_pengy.fypp
+    stdlib_hash_64bit_spookyv2.fypp
     stdlib_io.fypp
     stdlib_io_npy.fypp
     stdlib_io_npy_load.fypp
@@ -21,9 +23,19 @@ set(fppFiles
     stdlib_kinds.fypp
     stdlib_linalg.fypp
     stdlib_linalg_diag.fypp
+    stdlib_linalg_least_squares.fypp
     stdlib_linalg_outer_product.fypp
     stdlib_linalg_kronecker.fypp
     stdlib_linalg_cross_product.fypp
+    stdlib_linalg_eigenvalues.fypp
+    stdlib_linalg_solve.fypp    
+    stdlib_linalg_determinant.fypp
+    stdlib_linalg_qr.fypp
+    stdlib_linalg_inverse.fypp
+    stdlib_linalg_norms.fypp
+    stdlib_linalg_state.fypp
+    stdlib_linalg_svd.fypp 
+    stdlib_linalg_cholesky.fypp
     stdlib_optval.fypp
     stdlib_selection.fypp
     stdlib_sorting.fypp
@@ -55,6 +67,8 @@ set(fppFiles
     stdlib_math_is_close.fypp
     stdlib_math_all_close.fypp
     stdlib_math_diff.fypp
+    stdlib_math_meshgrid.fypp
+    stdlib_str2num.fypp
     stdlib_string_type.fypp
     stdlib_string_type_constructor.fypp
     stdlib_strings_to_string.fypp
@@ -62,26 +76,50 @@ set(fppFiles
     stdlib_version.fypp
 )
 
+# Preprocessed files to contain preprocessor directives -> .F90
+set(cppFiles
+    stdlib_linalg_constants.fypp
+    stdlib_linalg_blas.fypp
+    stdlib_linalg_blas_aux.fypp
+    stdlib_linalg_blas_s.fypp
+    stdlib_linalg_blas_d.fypp
+    stdlib_linalg_blas_q.fypp
+    stdlib_linalg_blas_c.fypp
+    stdlib_linalg_blas_z.fypp
+    stdlib_linalg_blas_w.fypp
+    stdlib_linalg_lapack.fypp
+    stdlib_linalg_lapack_aux.fypp
+    stdlib_linalg_lapack_s.fypp
+    stdlib_linalg_lapack_d.fypp
+    stdlib_linalg_lapack_q.fypp
+    stdlib_linalg_lapack_c.fypp
+    stdlib_linalg_lapack_z.fypp
+    stdlib_linalg_lapack_w.fypp
+)
 
 fypp_f90("${fyppFlags}" "${fppFiles}" outFiles)
+fypp_f90pp("${fyppFlags}" "${cppFiles}" outPreprocFiles)
 
 set(SRC
     stdlib_ansi.f90
     stdlib_ansi_operator.f90
     stdlib_ansi_to_string.f90
     stdlib_array.f90
+    stdlib_codata.f90
     stdlib_error.f90
     stdlib_hashmap_wrappers.f90
     stdlib_hashmaps.f90
     stdlib_hashmap_chaining.f90
     stdlib_hashmap_open.f90
     stdlib_logger.f90
+    stdlib_sorting_radix_sort.f90
     stdlib_system.F90
     stdlib_specialfunctions.f90
     stdlib_specialfunctions_legendre.f90
     stdlib_quadrature_gauss.f90
     stdlib_stringlist_type.f90
     ${outFiles}
+    ${outPreprocFiles}
 )
 
 add_library(${PROJECT_NAME} ${SRC})
