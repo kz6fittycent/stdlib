@@ -1,7 +1,7 @@
 # Fortran Standard Library
 
 [![Actions Status](https://github.com/fortran-lang/stdlib/workflows/CI/badge.svg)](https://github.com/fortran-lang/stdlib/actions)
-[![Actions Status](https://github.com/fortran-lang/stdlib/workflows/CI_windows/badge.svg)](https://github.com/fortran-lang/stdlib/actions) [![stdlib](https://snapcraft.io/stdlib/badge.svg)](https://snapcraft.io/stdlib) 
+[![Actions Status](https://github.com/fortran-lang/stdlib/workflows/CI_windows/badge.svg)](https://github.com/fortran-lang/stdlib/actions) [![stdlib](https://snapcraft.io/stdlib/badge.svg)](https://snapcraft.io/stdlib) [![🧪 Snap Builds](https://github.com/kz6fittycent/stdlib/actions/workflows/test-snap-can-build.yml/badge.svg)](https://github.com/kz6fittycent/stdlib/actions/workflows/test-snap-can-build.yml)
 
 * [Goals and Motivation](#goals-and-motivation)
 * [Scope](#scope)

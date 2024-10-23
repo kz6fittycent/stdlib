@@ -29,9 +29,6 @@ platforms:
   arm64:
     build-on: [arm64]
     build-for: [arm64]
-  armhf:
-    build-on: [armhf]
-    build-for: [armhf]
   s390x: 
     build-on: [s390x]
     build-for: [s390x]
