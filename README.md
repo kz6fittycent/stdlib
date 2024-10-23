@@ -91,12 +91,12 @@ The following combinations are tested on the default branch of stdlib:
 
 Name | Version | Platform | Architecture
 --- | --- | --- | ---
-GCC Fortran | 10, 11, 12 | Ubuntu 22.04.2 LTS | x86_64
-GCC Fortran | 10, 11, 12 | macOS 12.6.3 (21G419) | x86_64
-GCC Fortran (MSYS) | 10 | Windows Server 2022 (10.0.20348 Build 1547) | x86_64
-GCC Fortran (MinGW) | 10 | Windows Server 2022 (10.0.20348 Build 1547) | x86_64, i686
-Intel oneAPI classic | 2021.1 | Ubuntu 22.04.2 LTS | x86_64
-Intel oneAPI classic | 2021.1 | macOS 12.6.3 (21G419) | x86_64
+GCC Fortran | 10, 11, 12, 13 | Ubuntu 22.04.2 LTS | x86_64
+GCC Fortran | 10, 11, 12, 13 | macOS 12.6.3 (21G419) | x86_64
+GCC Fortran (MSYS) | 13 | Windows Server 2022 (10.0.20348 Build 1547) | x86_64
+GCC Fortran (MinGW) | 13 | Windows Server 2022 (10.0.20348 Build 1547) | x86_64, i686
+Intel oneAPI LLVM | 2024.0 | Ubuntu 22.04.2 LTS | x86_64
+Intel oneAPI classic | 2023.1 | macOS 12.6.3 (21G419) | x86_64
 
 The following combinations are known to work, but they are not tested in the CI:
 
@@ -183,11 +183,47 @@ earlier builds do not affect the new build.
 Fortran Package Manager (fpm) is a package manager and build system for Fortran.   
 You can build `stdlib` using provided `fpm.toml`:
 
+**Option 1**: From root folder
+
+As `fpm` does not currently support `fypp` natively, `stdlib` now proposes a python script to preprocess and build it.
+This script enables modification of the different `fypp` macros available in `stdlib`. The preprocessed files will be dumped at `<current_folder>/temp/*.f90` or `*.F90`.
+
+Make sure to install the dependencies from the `requirement.txt`
+```sh
+pip install --upgrade -r config/requirements.txt
+```
+
+To build, you can use the following command line:
+
+```sh
+python config/fypp_deployment.py
+fpm build --profile release
+```
+
+or the short-cut
+
+```sh
+python config/fypp_deployment.py --build
+```
+
+To modify the `maxrank` macro for instance:
+```sh
+python config/fypp_deployment.py --maxrank 7 --build
+```
+
+To see all the options:
+```sh
+python config/fypp_deployment.py --help
+```
+
+**Note**: If you use a compiler different than GNU compilers, the script will try to catch it from the environment variables `FPM_FC`, `FPM_CC`, `FPM_CXX`.
+
+**Option 2**: From the `stdlib-fpm` branch which has already been preprocessed with default macros:
 ```sh
 git checkout stdlib-fpm
 fpm build --profile release
 ```
-
+#### Runing the examples
 You can run the examples with `fpm` as:
 
 ```sh
@@ -197,13 +233,9 @@ fpm run --example prog
 with `prog` being the name of the example program (e.g., `example_sort`).
 
 
-To use `stdlib` within your `fpm` project, add the following lines to your `fpm.toml` file:
-```toml
-[dependencies]
-stdlib = { git="https://github.com/fortran-lang/stdlib", branch="stdlib-fpm" }
-```
-
 ## Using stdlib in your project
+
+### Using stdlib with CMake
 
 The stdlib project exports CMake package files and pkg-config files to make stdlib usable for other projects.
 The package files are located in the library directory in the installation prefix.
@@ -222,6 +254,68 @@ target_link_libraries(
 
 To make the installed stdlib project discoverable add the stdlib directory to the ``CMAKE_PREFIX_PATH``.
 The usual install location of the package files is ``$PREFIX/lib/cmake/fortran_stdlib``.
+
+### Using stdlib with fpm
+
+To use `stdlib` within your `fpm` project, add the following lines to your `fpm.toml` file:
+```toml
+[dependencies]
+stdlib = { git="https://github.com/fortran-lang/stdlib", branch="stdlib-fpm" }
+```
+
+> **Warning**
+> 
+> Fpm 0.9.0 and later implements stdlib as a *metapackage*.
+> To include the standard library metapackage, change the dependency to:
+> `stdlib = "*"`.
+> 
+> [see also](https://fpm.fortran-lang.org/spec/metapackages.html)
+
+### Using stdlib with a regular Makefile
+
+After the library has been built, it can be included in a regular Makefile.
+The recommended way to do this is using the [pkg-config](https://www.freedesktop.org/wiki/Software/pkg-config/) tool, for which an example is shown below.
+```make
+# Necessary if the installation directory is not in PKG_CONFIG_PATH
+install_dir := path/to/install_dir
+export PKG_CONFIG_PATH := $(install_dir)/lib/pkgconfig:$(PKG_CONFIG_PATH)
+
+STDLIB_CFLAGS := `pkg-config --cflags fortran_stdlib`
+STDLIB_LIBS := `pkg-config --libs fortran_stdlib`
+
+# Example definition of Fortran compiler and flags
+FC := gfortran
+FFLAGS := -O2 -Wall -g
+
+# Definition of targets etc.
+...
+
+# Example rule to compile object files from .f90 files
+%.o: %.f90
+    $(FC) -c -o $@ $< $(FFLAGS) $(STDLIB_CFLAGS)
+
+# Example rule to link an executable from object files
+%: %.o
+    $(FC) -o $@ $^ $(FFLAGS) $(STDLIB_LIBS)
+
+```
+
+The same can also be achieved without pkg-config.
+If the library has been installed in a directory inside the compiler's search path,
+only a flag `-lfortran_stdlib` is required.
+If the installation directory is not in the compiler's search path, one can add for example
+```make
+install_dir := path/to/install_dir
+libdir := $(install_dir)/lib
+moduledir := $(install_dir)/include/fortran_stdlib/<compiler name and version>
+```
+The linker should then look for libraries in `libdir` (using e.g.`-L$(libdir)`) and the compiler should look for module files in `moduledir` (using e.g. `-I$(moduledir)`).
+Alternatively, the library can also be included from a build directory without installation with
+```make
+build_dir := path/to/build_dir
+libdir := $(build_dir)/src
+moduledir := $(build_dir)/src/mod_files
+```
 
 ## Documentation
 

@@ -3,10 +3,19 @@ project: Fortran-lang/stdlib
 summary: A community driven standard library for (modern) Fortran
 src_dir: src
 include: src
+         include
 exclude_dir: src/tests
 output_dir: API-doc
 page_dir: doc
 media_dir: doc/media
+exclude: src/stdlib_linalg_lapack.fypp
+         src/stdlib_linalg_lapack_aux.fypp
+         src/stdlib_linalg_lapack_c.fypp
+         src/stdlib_linalg_lapack_d.fypp
+         src/stdlib_linalg_lapack_q.fypp
+         src/stdlib_linalg_lapack_s.fypp
+         src/stdlib_linalg_lapack_w.fypp
+         src/stdlib_linalg_lapack_z.fypp
 fpp_extensions: fypp
 preprocess: true
 macro: MAXRANK=3
@@ -34,8 +43,8 @@ project_website: https://stdlib.fortran-lang.org
 favicon: doc/media/favicon.ico
 license: by-sa
 author: fortran-lang/stdlib contributors
-author_pic: https://fortran-lang.org/assets/img/fortran_logo_512x512.png
-author_email: fortran-lang@groups.io
+author_pic: https://fortran-lang.org/en/_static/fortran-logo-256x256.png 
+email: fortran-lang@groups.io
 github: https://github.com/fortran-lang
 twitter: https://twitter.com/fortranlang
 website: https://fortran-lang.org
