@@ -6,6 +6,7 @@
 * [Goals and Motivation](#goals-and-motivation)
 * [Scope](#scope)
 * [Getting started](#getting-started)
+  - [Install the snap](#install-the-snap)
   - [Get the code](#get-the-code)
   - [Requirements](#requirements)
   - [Supported compilers](#supported-compilers)
@@ -42,12 +43,12 @@ The goal of the Fortran Standard Library is to achieve the following general sco
   transform, random numbers, statistics, ordinary differential equations,
   numerical integration, optimization, ...)
 
-## Install the snap
+## Getting started
+
+### Install the snap
 ```
 sudo snap install stdlib
 ```
-
-## Getting started
 
 ### Get the code
 
