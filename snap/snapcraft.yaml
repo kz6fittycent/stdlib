@@ -13,17 +13,31 @@ description: |
   it would base it on stdlib's implementation.
   
 license: MIT
-
-base: core22
+source-code: https://github.com/fortran-lang/stdlib
+issues: https://github.com/kz6fittycent/stdlib/issues
+contact: https://github.com/kz6fittycent/stdlib
+icon: snap/local/stdlib.png
+base: core24
 grade: stable
 confinement: strict
 compression: lzo
 
-architectures:
-  - build-on: amd64
-  - build-on: arm64
-  - build-on: ppc64el
-  - build-on: s390x
+platforms:
+  amd64:
+    build-on: [amd64]
+    build-for: [amd64]
+  arm64:
+    build-on: [arm64]
+    build-for: [arm64]
+  armhf:
+    build-on: [armhf]
+    build-for: [armhf]
+  s390x: 
+    build-on: [s390x]
+    build-for: [s390x]
+  ppc64el:
+    build-on: [ppc64el]
+    build-for: [ppc64el]
 
 parts:
   fypp:
@@ -48,6 +62,6 @@ parts:
       - ninja-build
       
     override-pull: |
-      snapcraftctl pull
-      snapcraftctl set-version "$(git describe --tags | sed 's/^v//' | cut -d "-" -f1)"
+      craftctl default
+      craftctl set version="$(git describe --tags | sed 's/^v//' | cut -d "-" -f1)" 
 

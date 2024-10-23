@@ -1,7 +1,7 @@
 # Fortran Standard Library
 
 [![Actions Status](https://github.com/fortran-lang/stdlib/workflows/CI/badge.svg)](https://github.com/fortran-lang/stdlib/actions)
-[![Actions Status](https://github.com/fortran-lang/stdlib/workflows/CI_windows/badge.svg)](https://github.com/fortran-lang/stdlib/actions)
+[![Actions Status](https://github.com/fortran-lang/stdlib/workflows/CI_windows/badge.svg)](https://github.com/fortran-lang/stdlib/actions) [![stdlib](https://snapcraft.io/stdlib/badge.svg)](https://snapcraft.io/stdlib) 
 
 * [Goals and Motivation](#goals-and-motivation)
 * [Scope](#scope)
@@ -42,6 +42,10 @@ The goal of the Fortran Standard Library is to achieve the following general sco
   transform, random numbers, statistics, ordinary differential equations,
   numerical integration, optimization, ...)
 
+## Install the snap
+```
+sudo snap install stdlib
+```
 
 ## Getting started
 
