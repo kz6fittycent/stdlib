@@ -1,0 +1,99 @@
+name: 🛡️ Security Rebuild
+
+# Once a week (Thursdays, between the Monday publish runs), checks the snaps
+# published on stable for known vulnerabilities with a fix available, with Grype
+# (the snap holds static Fortran libraries and fypp, no Ubuntu packages, so the
+# Snap Store's own notices check has nothing to look at). If it finds any,
+# publish-snap.yml rebuilds and releases to stable.
+#
+# By hand (Run workflow): dry_run only reports; force rebuilds regardless.
+
+on:
+  schedule:
+    - cron: "17 9 * * 4"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Only check and report - don't rebuild or publish"
+        type: boolean
+        default: true
+      force:
+        description: "Rebuild even if nothing needs it"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-rebuild
+  cancel-in-progress: false
+
+env:
+  SNAP_NAME: stdlib
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    outputs:
+      rebuild: ${{ steps.decide.outputs.rebuild }}
+    steps:
+      - name: Install Grype
+        id: grype
+        uses: anchore/scan-action/download-grype@v7
+
+      - name: Scan the stable snaps
+        env:
+          GRYPE: ${{ steps.grype.outputs.cmd }}
+        run: |
+          # Only the architectures that are on stable. A store outage fails here.
+          curl -fsS --retry 5 --retry-all-errors -H 'Snap-Device-Series: 16' \
+            "https://api.snapcraft.io/v2/snaps/info/$SNAP_NAME" > info.json
+          archs="$(jq -r '."channel-map"[] | select(.channel.track == "latest" and .channel.risk == "stable") | .channel.architecture' info.json | sort -u)"
+          [[ -n "$archs" ]] || { echo "::error::nothing on stable"; exit 1; }
+          for arch in $archs; do
+            for attempt in 1 2 3; do
+              UBUNTU_STORE_ARCH=$arch snap download "$SNAP_NAME" --channel=stable --basename="$arch" && break
+              [[ "$attempt" == 3 ]] && { echo "::error::snap download ($arch) failed"; exit 1; }
+              sleep 30
+            done
+            unsquashfs -q -d "root-$arch" "$arch.snap"
+            "$GRYPE" "dir:root-$arch" --only-fixed -o json > "vulns-$arch.json"
+          done
+
+      - name: Decide
+        id: decide
+        env:
+          FORCE: ${{ inputs.force }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          python3 - <<'PY'
+          import glob, json, os
+
+          needed, lines = False, []
+          for path in sorted(glob.glob("vulns-*.json")):
+              arch = path[len("vulns-"):-len(".json")]
+              found = sorted({(m["artifact"]["name"], m["vulnerability"]["id"])
+                              for m in json.load(open(path))["matches"]})
+              lines.append(f"- {arch}: {len(found)} fixable vulnerabilities")
+              for name, vid in found:
+                  needed = True
+                  lines.append(f"  - `{name}`: {vid}")
+          rebuild = needed or os.environ["FORCE"] == "true"
+          if rebuild and os.environ["DRY_RUN"] == "true":
+              lines.append("\nDry run: would rebuild.")
+              rebuild = False
+          else:
+              lines.append(f"\nRebuild: {rebuild}")
+          report = "\n".join(lines) + "\n"
+          print(report)
+          open(os.environ["GITHUB_STEP_SUMMARY"], "a").write(report)
+          open(os.environ["GITHUB_OUTPUT"], "a").write(f"rebuild={str(rebuild).lower()}\n")
+          PY
+
+  publish:
+    needs: check
+    if: needs.check.outputs.rebuild == 'true'
+    uses: ./.github/workflows/publish-snap.yml
+    secrets:
+      SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}

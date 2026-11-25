@@ -30,10 +30,10 @@ platforms:
     build-on: [arm64]
     build-for: [arm64]
   s390x: 
-    build-on: [s390x]
+    build-on: [amd64]
     build-for: [s390x]
   ppc64el:
-    build-on: [ppc64el]
+    build-on: [amd64]
     build-for: [ppc64el]
 
 parts:
@@ -42,23 +42,68 @@ parts:
     source-type: git
     plugin: python
     python-packages:
-      - fypp 
- 
+      - fypp
+    # Only needed to build; not part of the library.
+    prime:
+      - -bin/pip*
+      - -lib/python*/site-packages/pip
+      - -lib/python*/site-packages/pip-*
+
   stdlib:
     source: https://github.com/fortran-lang/stdlib
     source-type: git
     plugin: cmake
     cmake-parameters:
       - -DCMAKE_INSTALL_PREFIX=/usr/local/stdlib
-      - -DCMAKE_Fortran_COMPILER=/usr/bin/gfortran-10
+    build-environment:
+      - CMAKE_TOOLCHAIN_FILE: $CRAFT_PART_BUILD/snap-toolchain.cmake
     after:
       - fypp
-    
+
     build-packages:
+      - gcc-10
+      - g++-10
       - gfortran-10
       - ninja-build
-      
+      # ppc64el and s390x are cross-compiled
+      - on amd64 to ppc64el:
+          - gcc-10-powerpc64le-linux-gnu
+          - g++-10-powerpc64le-linux-gnu
+          - gfortran-10-powerpc64le-linux-gnu
+      - on amd64 to s390x:
+          - gcc-10-s390x-linux-gnu
+          - g++-10-s390x-linux-gnu
+          - gfortran-10-s390x-linux-gnu
+
     override-pull: |
       craftctl default
-      craftctl set version="$(git describe --tags | sed 's/^v//' | cut -d "-" -f1)" 
+      craftctl set version="$(git describe --tags | sed 's/^v//' | cut -d "-" -f1)"
 
+    # CMake finds out about quad precision by running test programs, which can't
+    # work when cross-compiling, so the answers (from native builds) are given
+    # here: ppc64el has IBM double-double (XDP, no QP), s390x has IEEE quad (QP).
+    override-build: |
+      T=$CRAFT_ARCH_TRIPLET_BUILD_FOR
+      {
+        echo "set(CMAKE_C_COMPILER /usr/bin/$T-gcc-10)"
+        echo "set(CMAKE_CXX_COMPILER /usr/bin/$T-g++-10)"
+        echo "set(CMAKE_Fortran_COMPILER /usr/bin/$T-gfortran-10)"
+        if [ "$CRAFT_ARCH_BUILD_ON" != "$CRAFT_ARCH_BUILD_FOR" ]; then
+          echo "set(CMAKE_SYSTEM_NAME Linux)"
+          case "$CRAFT_ARCH_BUILD_FOR" in
+            ppc64el) P=ppc64le; QP=0; XDP=1 ;;
+            s390x) P=s390x; QP=1; XDP=0 ;;
+            *) echo "No cross settings for $CRAFT_ARCH_BUILD_FOR" >&2; exit 1 ;;
+          esac
+          echo "set(CMAKE_SYSTEM_PROCESSOR $P)"
+          echo "set(WITH_CBOOL 1 CACHE STRING \"\")"
+          for prefix in "" TESTDRIVE_; do
+            echo "set(${prefix}WITH_QP $QP CACHE STRING \"\")"
+            echo "set(${prefix}WITH_XDP $XDP CACHE STRING \"\")"
+          done
+          echo "set(TESTDRIVE_WITH_IEEE_IS_NAN 1 CACHE STRING \"\")"
+          echo "set(f18errorstop 0 CACHE STRING \"\")"
+          echo "set(f03real128 1 CACHE STRING \"\")"
+        fi
+      } > "$CRAFT_PART_BUILD/snap-toolchain.cmake"
+      craftctl default
